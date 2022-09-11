@@ -1,56 +1,57 @@
-const fs = require('fs');
-const path = require('path');
+const fs = require("fs");
+const path = require("path");
 
-module.exports = app = {
+module.exports = (app) => {
+  fs.readFile("db/db.json", "utf8", (err, data) => {
+    if (err) throw err;
 
-    fs.readFile("db/db.json","utf8", (err, data) => {
+    var notes = JSON.parse(data);
 
-        if (err) throw err;
-        var notes = JSON.parse(data);
-
-        //API Routes
-        //Get Notes
-        app.get("/api/notes", function (req, res) {
-            res.json(notes);
-        });
-
-        //Post Notes
-        app.post("/api/notes", function(req, res) {
-            let newNote = req.body;
-            notes.push(newNote);
-            updateDb();
-            return console.log("New Note Added!");
-        });
-
-        //Get Specific Note
-        app.get("/api/notes/:id", function(req,res) {
-            res.json(notes[req.params.id]);
-        });
-
-        //Delete a Note 
-        app.delete("/api/notes/:id", function(req, res) {
-            notes.splice(req.params.id, 1);
-            updateDb();
-            console.log("Note Deleted!");
-        });
-
-
-        //Show Posted Notes
-        app.get('/notes', function(req, res) {
-            res.sendFile(path.join(__dirname, "../public/notes.html"));
-        });
-
-        //Show All Notes
-        app.get('*', function(req,res) {
-            res.sendFile(path.join(__dirname, "../public/index.html"));
-        });
-
-        //Updates Notes When Changes Made
-        function updateDb() {
-            fs.writeFile("db/db.json", JSON.stringify(notes, '/t'), err => {
-                if (err) throw err;
-                return true;
-            });
-        }
+    // API ROUTES
+    // GET Notes
+    app.get("/api/notes", function (req, res) {
+      // Read the db.json file and return all saved notes as JSON.
+      res.json(notes);
     });
-}
+
+    // POST Note
+    app.post("/api/notes", function (req, res) {
+      // Receives a new note, adds it to db.json, then returns the new note
+      let newNote = req.body;
+      notes.push(newNote);
+      updateDb();
+      return console.log("Added new note: " + newNote.title);
+    });
+
+    // GET Notes
+    app.get("/api/notes/:id", function (req, res) {
+      // display json for the notes array indices of the provided id
+      res.json(notes[req.params.id]);
+    });
+
+    // DELETE Specific Note
+    app.delete("/api/notes/:id", function (req, res) {
+      notes.splice(req.params.id, 1);
+      updateDb();
+      console.log("Deleted note with id " + req.params.id);
+    });
+
+    // SHOW notes.html
+    app.get("/notes", function (req, res) {
+      res.sendFile(path.join(__dirname, "../public/notes.html"));
+    });
+
+    // SHOW index.html
+    app.get("*", function (req, res) {
+      res.sendFile(path.join(__dirname, "../public/index.html"));
+    });
+
+    //UPDATE When Changes are Made
+    function updateDb() {
+      fs.writeFile("db/db.json", JSON.stringify(notes, "\t"), (err) => {
+        if (err) throw err;
+        return true;
+      });
+    }
+  });
+};
